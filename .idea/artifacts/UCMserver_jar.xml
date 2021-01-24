@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="UCMserver:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/UCMserver_jar</output-path>
+    <root id="archive" name="UCMserver.jar">
+      <element id="module-output" name="UCMserver" />
+      <element id="extracted-dir" path="$USER_HOME$/IdeaProjects/MyChat/src/source/jar/mysql-connector-java-8.0.19.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
