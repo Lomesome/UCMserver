@@ -32,7 +32,7 @@ public class ServerConClientThread extends Thread {
                 Message m = (Message) ois.readObject();
 
                 // 对从客户端取得的消息进行类型判断，然后做相应的处理
-                if (m.getMesType().equals(MessageType.MESSAGE_COMM) || m.getMesType().equals(MessageType.MESSAGE_COMM_IMAGE) || m.getMesType().equals(MessageType.MESSAGE_GET_ADDPEOPLE)) {
+                if (m.getMesType().equals(MessageType.MESSAGE_COMM) || m.getMesType().equals(MessageType.MESSAGE_COMM_IMAGE) || m.getMesType().equals(MessageType.MESSAGE_GET_ADDPEOPLE) || m.getMesType().equals(MessageType.MESSAGE_MY_IMFORMATION_TO_FRIENDS)) {
                     // 服务器转发给客户端B
                     // 取得接收人的通讯线程
 
@@ -183,11 +183,20 @@ public class ServerConClientThread extends Thread {
                     oos.writeObject(m2);
                 }else if (m.getMesType().equals(MessageType.MESSAGE_CHANGE_MY_IMFORMATION)) {
                     SqlHelper sh = new SqlHelper();
-                    String sql="UPDATE userinformation SET sex = ? , age = ?, birthday = ?, nickname = ? WHERE userid = ?";
+                    String sql="UPDATE userinformation SET sex = ? , age = ?, birthday = ?, nickname = ?, signature = ?, head = ? WHERE userid = ?";
                     PeopleInformation peopleInformation = (PeopleInformation) m.getLists().get(0);
-                    String[] paras = { peopleInformation.getSex(), String.valueOf(peopleInformation.getAge()),peopleInformation.getBirthday(),peopleInformation.getNickname(), peopleInformation.getUserid() };
+                    String[] paras = { peopleInformation.getSex(), String.valueOf(peopleInformation.getAge()),peopleInformation.getBirthday(),peopleInformation.getNickname(), peopleInformation.getSignature(), peopleInformation.getHead(), peopleInformation.getUserid() };
                     sh.changeMsg(sql, paras);
                     sh.close();
+                }else if (m.getMesType().equals(MessageType.MESSAGE_MY_IMFORMATION_TO_FRIENDS)) {
+                    // 服务器转发给客户端B
+                    // 取得接收人的通讯线程
+                    ServerConClientThread sc = ManageClientThread.getClientThread(m.getGetter());
+                    if(sc != null){
+                        ObjectOutputStream oos = new ObjectOutputStream(sc.s.getOutputStream());
+                        // 服务器发送给接收人
+                        oos.writeObject(m);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
