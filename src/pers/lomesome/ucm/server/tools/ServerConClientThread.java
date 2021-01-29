@@ -32,7 +32,7 @@ public class ServerConClientThread extends Thread {
                 Message m = (Message) ois.readObject();
 
                 // 对从客户端取得的消息进行类型判断，然后做相应的处理
-                if (m.getMesType().equals(MessageType.MESSAGE_COMM) || m.getMesType().equals(MessageType.MESSAGE_COMM_IMAGE) || m.getMesType().equals(MessageType.MESSAGE_GET_ADDPEOPLE) || m.getMesType().equals(MessageType.MESSAGE_MY_IMFORMATION_TO_FRIENDS)) {
+                if (m.getMesType().equals(MessageType.MESSAGE_COMM) || m.getMesType().equals(MessageType.MESSAGE_COMM_IMAGE) || m.getMesType().equals(MessageType.MESSAGE_COMM_VOICE) || m.getMesType().equals(MessageType.MESSAGE_GET_ADDPEOPLE) || m.getMesType().equals(MessageType.MESSAGE_MY_IMFORMATION_TO_FRIENDS)) {
                     // 服务器转发给客户端B
                     // 取得接收人的通讯线程
 
@@ -57,25 +57,29 @@ public class ServerConClientThread extends Thread {
                         String sql;
                         if(m.getMesType().equals(MessageType.MESSAGE_RET_ADDPEOPLE)){
                             sql = "insert into historymessage (fromid, toid, message, sendtime, msgtype) values(?, ?, ?, ?, ?)";
-                        }else {
+                            SqlHelper sh = new SqlHelper();
+                            String[] paras = { m.getSender(), m.getGetter(), m.getContent(), m.getSendTime(), m.getMesType() };
+                            sh.changeMsg(sql, paras);
+                            sh.close();
+                        }else if (m.getMesType().equals(MessageType.MESSAGE_COMM) || m.getMesType().equals(MessageType.MESSAGE_COMM_IMAGE) || m.getMesType().equals(MessageType.MESSAGE_COMM_VOICE)){
                             sql = "insert into offlinemessage (fromid, toid, message, sendtime, msgtype) values(?, ?, ?, ?, ?)";
+                            SqlHelper sh = new SqlHelper();
+                            String[] paras = { m.getSender(), m.getGetter(), m.getContent(), m.getSendTime(), m.getMesType() };
+                            sh.changeMsg(sql, paras);
+                            sh.close();
                         }
-                        SqlHelper sh = new SqlHelper();
-                        String[] paras = { m.getSender(), m.getGetter(), m.getContent(), m.getSendTime(), m.getMesType() };
-                        sh.changeMsg(sql, paras);
-                        sh.close();
                     }
                 } else if (m.getMesType().equals(MessageType.MESSAGE_GET_MYFRIEND)) {
                     // 把在服务器的好友返回给客户端
-
                     Message m2 = new Message();
                     m2.setMesType(MessageType.MESSAGE_RET_MYFRIEND);
                     List<PeopleInformation> list = FriendsList.getFriends(m.getSender());
-
                     m2.setLists(list);
                     m2.setGetter(m.getSender());
                     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     oos.writeObject(m2);
+                    list = null;
+                    m2 = null;
                 }else if (m.getMesType().equals(MessageType.MESSAGE_EXIT)){
                     ManageClientThread.delClientThread(m.getSender());
                     for(ServerConClientThread sc:ManageClientThread.getAllClientThread()){
@@ -102,6 +106,7 @@ public class ServerConClientThread extends Thread {
                         String newsql = "insert into historymessage (fromid, toid, message, sendtime, msgtype) values(?, ?, ?, ?, ?)";
                         String[] newparas = { message.getSender(), message.getGetter(), message.getContent(), message.getSendTime(), message.getMesType() };
                         sh.changeMsg(newsql, newparas);
+                        message = null;
                     }
                     sql = "select * from offlinemessage where fromid = ?";
                     paras = new String[]{m.getSender()};
@@ -124,6 +129,8 @@ public class ServerConClientThread extends Thread {
                     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     oos.writeObject(m2);
                     sh.close();
+                    list = null;
+                    m2 = null;
                 }else if (m.getMesType().equals(MessageType.MESSAGE_GET_HISTORY)){
                     SqlHelper sh = new SqlHelper();
                     String sql = "select * from historymessage where toid = ? or fromid = ?";
@@ -146,6 +153,8 @@ public class ServerConClientThread extends Thread {
                     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     oos.writeObject(m2);
                     sh.close();
+                    list = null;
+                    m2 = null;
                 }else if (m.getMesType().equals(MessageType.MESSAGE_GET_HISTORY_ADDPROPLE)){
                     SqlHelper sh = new SqlHelper();
                     String sql = "select distinct userinformation.*,historymessage.* from historymessage join userinformation on (historymessage.fromid = userinformation.userid or historymessage.toid = userinformation.userid) where (toid=? or fromid = ?) and msgtype=15";
@@ -173,6 +182,8 @@ public class ServerConClientThread extends Thread {
                     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     oos.writeObject(m2);
                     sh.close();
+                    list = null;
+                    m2 = null;
                 }else if (m.getMesType().equals(MessageType.MESSAGE_GET_FINDPEOPLE)) {
                     Message m2 = new Message();
                     m2.setMesType(MessageType.MESSAGE_RET_FINDPEOPLE);
@@ -181,6 +192,8 @@ public class ServerConClientThread extends Thread {
                     m2.setGetter(m.getSender());
                     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     oos.writeObject(m2);
+                    list = null;
+                    m2 = null;
                 }else if (m.getMesType().equals(MessageType.MESSAGE_CHANGE_MY_IMFORMATION)) {
                     SqlHelper sh = new SqlHelper();
                     String sql="UPDATE userinformation SET sex = ? , age = ?, birthday = ?, nickname = ?, signature = ?, head = ? WHERE userid = ?";

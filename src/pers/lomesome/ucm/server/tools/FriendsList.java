@@ -34,5 +34,4 @@ public class FriendsList {
         sh.changeMsg(sql, paras);
         sh.close();
     }
-
 }

@@ -11,11 +11,13 @@ public class noGUI {
     public noGUI() {
         new MyThread().start();
     }
-}
 
-class MyThread extends Thread {
-    @Override
-    public void run() {
-        new UCMServer();
+    class MyThread extends Thread {
+        @Override
+        public void run() {
+            new UCMServer();
+        }
     }
 }
+
+
